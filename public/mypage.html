@@ -2,13 +2,19 @@
 <html lang="ko">
 
 <head>
-    <title id="titleCheck">mypage</title>
+    <title id="titleCheck">실시간 예약 플랫폼 - 마이 페이지</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
+    <style>
+        .newEvent {
+            display: none;
+            background-color: rgba(201, 201, 201, 0.5);
+        }
+    </style>
 </head>
 
 <body>
@@ -25,7 +31,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/">마이페이지</a>
+                <a class="navbar-brand" href="/">실시간 예약 플랫폼</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -60,50 +66,44 @@
 
     <!-- userkey 비교하기. 현재로그인 한사람의 userkey면 마이 페이지 리스트 출력, 다른사람userkey 면 다른사람이름+ page 출력 -->
     <div class="container">
-        <h1>mypage</h1>
+        <h1>마이페이지</h1>
         <br>
-        <!-- 프로필 사진 부분 -->
-        <div class="media">
-            <div class="media-left">
-                <img id="myimage" src="https://www.w3schools.com/bootstrap/img_avatar3.png" class="media-object"
-                    style="width:60px">
-                <!-- file -->
-                <div id="showfile">
-                </div>
-
-            </div>
-            <div class="media-body">
-                <h4 class="media-heading" id="nicname">닉네임</h4>
-                <!-- 상태메시지 -->
-                <div id="statetxtP">
-                    <p id="statetxt"></p>
-                </div>
-            </div>
+        <div align="center">
+            <button type="button" class="btn btn-success write" id="show" name="show">새로운 행사 등록하기</button>
+        </div>
+        <div class="newEvent" id="newEvent">
             <br>
-
-            <div align="right">
-                <button id="changeBtn" type="button" class="btn btn-warning">수정하기</button>
+            <div class="form-group">
+                <label for="eventTitle"> 행사 제목:</label>
+                <textarea class="form-control" rows="1" id="eventTitle" placeholder="행사의 제목을 입력해주세요:)"></textarea>
+                <br>
+                <label for="eventContents"> 행사 내용:</label>
+                <textarea class="form-control" rows="5" id="eventContents" placeholder="행사의 내용을 입력해주세요:)"></textarea>
+                <br>
+                <label for="eventPeople"> 수용 인원:</label>
+                <textarea class="form-control" rows="1" id="eventPeople"
+                    placeholder="행사에 참가 가능한 인원을 입력해주세요:)"></textarea>
+                <br>
+                <div align="center">
+                    <button align="center">행사 이미지 등록</button>
+                </div>
+                <br>
+                <div align="center">
+                    <button type="button" id="write" name="write">행사 등록</button>
+                </div>
             </div>
         </div>
-        <hr>
 
-        <br>
-
-        <!-- 감사리스트 출력하기-->
-        <div class="container">
-
-            <h3>나의 감사리스트</h3>
+        <div class="list-group">
+            <h3>내가 개최한 행사 리스트</h3>
             <br>
-            <!-- 감사 리스트 붙일 곳 -->
-            <div class="thanksList"></div>
+            <div class="eventList"></div>
 
+            <h3>내가 참가하는 행사 리스트</h3>
+            <br>
+            <div class="bookingList"></div>
         </div>
-
-
     </div>
-
-
-    <!-- 가입 폼 끝 -->
 
 
     <!--현재 시간을 가져오는 js 파일 -->
@@ -162,6 +162,18 @@
         $(document).on('click', '#changeBtn', function () {
             changeButtonAction();
         });
+        $(document).on('click', '#show', function () {
+            doDisplay();
+        });
+
+        function doDisplay() {
+            var con = document.getElementById("newEvent");
+            if (con.style.display == 'none') {
+                con.style.display = 'block';
+            } else {
+                con.style.display = 'none';
+            }
+        }
 
         //수정, 저장하기 버튼 눌렀을 때 작동하는 함수
         function changeButtonAction() {
@@ -283,8 +295,6 @@
 
         //감사리스트 가져오기
         function myThanksList() {
-            console.log("땡스 리스트 함수안으로 들어왔습니다")
-
             var thanksRef = firebaseDatabase.ref('thanks');
             //조회
             thanksRef.on('child_added', on_thanks_list)

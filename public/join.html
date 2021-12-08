@@ -2,7 +2,7 @@
 <html lang="ko">
 
 <head>
-    <title>감사일기 - 가입</title>
+    <title>실시간 예약 플랫폼 - 회원가입</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -23,7 +23,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/">환영합니다!</a>
+                <a class="navbar-brand" href="/">실시간 예약 플랫폼</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -64,11 +64,6 @@
         <div class="form-group">
             <label for="email">Email address:</label>
             <input type="email" class="form-control" id="email">
-        </div>
-
-        <div class="form-group">
-            <label for="name">NicName:</label>
-            <input type="text" class="form-control" id="name">
         </div>
 
         <div class="form-group">
@@ -114,18 +109,11 @@
                 //jquery를 이용해서 입력된 값을 가져온다.  
                 var email = $('#email').val();
                 var password = $('#pwd').val();
-                name = $('#name').val();
 
                 //이메일로 가입 버튼 눌렀을 때 작동되는 함수 - firebase 인증 모듈
                 firebaseEmailAuth.createUserWithEmailAndPassword(email, password).then(function (user) {
 
                     userInfo = user; //가입 후 callBack 함수로 생성된 유저의 정보가 user에 담겨서 넘어온다. 전역변수에 할당.
-
-                    //뭐가 찍히는지 직접 체크해보세요.
-                    console.log("userInfo/" + userInfo); //오브젝트 타입
-                    console.log("userInfo.currentUser/" + userInfo.currentUser); //안됨
-                    console.log("userInfo.uid/" + userInfo.uid); //vPArtCHqPpOeIOpidEfug0Kgq3v1
-
                     //성공했을 때 작동되는 함수
                     logUser();
 
@@ -144,7 +132,6 @@
                     //저장 형식
                     //key 값도 같이 넣어준다.
                     var obj = {
-                        name: name,
                         userkey: userInfo.uid
                     };
 

@@ -1,6 +1,12 @@
 {
   "rules": {
-    ".read": false,
-    ".write": false
+    "users": {
+      ".read": "true",
+      ".write": "true"
+    },
+    "eventList": {
+      ".read": "auth.uid != null",
+      ".write": "auth.uid != null"
+    }
   }
 }

@@ -7,20 +7,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-  <!-- Bootstrap core CSS -->
-  <link href="/docs/5.1/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
 
   <!-- Favicons -->
-  <link rel="apple-touch-icon" href="/docs/5.1/assets/img/favicons/apple-touch-icon.png" sizes="180x180">
+  <!-- <link rel="apple-touch-icon" href="/docs/5.1/assets/img/favicons/apple-touch-icon.png" sizes="180x180">
   <link rel="icon" href="/docs/5.1/assets/img/favicons/favicon-32x32.png" sizes="32x32" type="image/png">
   <link rel="icon" href="/docs/5.1/assets/img/favicons/favicon-16x16.png" sizes="16x16" type="image/png">
   <link rel="manifest" href="/docs/5.1/assets/img/favicons/manifest.json">
   <link rel="mask-icon" href="/docs/5.1/assets/img/favicons/safari-pinned-tab.svg" color="#7952b3">
   <link rel="icon" href="/docs/5.1/assets/img/favicons/favicon.ico">
   <meta name="theme-color" content="#7952b3">
-  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" /> -->
+
   <!-- Link Swiper's CSS -->
   <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
 
@@ -45,7 +45,7 @@
 
     .swiper {
       width: 100%;
-      height: 100%;
+      height: auto;
     }
 
     .swiper-slide {
@@ -70,8 +70,8 @@
 
     .swiper-slide img {
       display: block;
-      width: 50%;
-      height: 100%;
+      width: 60%;
+      height: auto;
       object-fit: cover;
     }
   </style>
@@ -140,67 +140,19 @@
     </div>
   </div>
 
-  <!-- <template>
-    <div class="Wrapper">
-      <span v-on:click="pre" v-bind:class="{ hidden: selected == 1 }">
-        <i class="fas fa-chevron-circle-left fa-2x left"></i>
-      </span>
-      <div class="imageContainer" v-bind:style="{
-        transform: 'translate(-' + (selected - 1) * 300 + 'px, 0px)'
-      }">
-        <div v-for="i in images">
-          <div class="image" v-bind:style="{ 'background-image': 'url(' + i + ')' }"></div>
-        </div>
-      </div>
-      <span v-on:click="next" v-bind:class="{ hidden: selected == length }">
-        <i class="fas fa-chevron-circle-right fa-2x right"></i>
-      </span>
-    </div>
-  </template> -->
-  <!-- 
-  <script>
-    export default {
-      props: ["images"],
-      data() {
-        return {
-          length: this.images.length,
-          selected: 1
-        };
-      },
-      mounted() { },
-      methods: {
-        next() {
-          if (this.selected == this.length) {
-            this.selected = 1;
-          } else {
-            this.selected = this.selected + 1;
-          }
-          console.log(this.selected);
-        },
-        pre() {
-          if (this.selected == 1) {
-            this.selected = this.length;
-          } else {
-            this.selected = this.selected - 1;
-          }
-          console.log(this.selected);
-        }
-      }
-    };
-  </script>
-  <br>
-  점보트론 끝 -->
 
   <!-- 스와이프 예시 -->
   <div class="swiper mySwiper">
     <div class="swiper-wrapper">
       <div class="swiper-slide">
         <img
-          src="https://firebasestorage.googleapis.com/v0/b/adweb-bookings.appspot.com/o/4_blackday.png?alt=media&token=16b0808e-7f14-44ae-8482-eac42e7ec6a8" />
+          src="https://firebasestorage.googleapis.com/v0/b/adweb-bookings.appspot.com/o/4_blackday.png?alt=media&token=16b0808e-7f14-44ae-8482-eac42e7ec6a8"
+          id="img1" />
       </div>
       <div class="swiper-slide">
         <img
-          src="https://firebasestorage.googleapis.com/v0/b/adweb-bookings.appspot.com/o/11_cicenight.jpg?alt=media&token=bebb2534-f372-472d-abd4-517d6ff3bdda" />
+          src="https://firebasestorage.googleapis.com/v0/b/adweb-bookings.appspot.com/o/11_cicenight.jpg?alt=media&token=bebb2534-f372-472d-abd4-517d6ff3bdda"
+          id="img2" />
       </div>
     </div>
     <div class="swiper-button-next"></div>
@@ -222,6 +174,8 @@
         nextEl: ".swiper-button-next",
         prevEl: ".swiper-button-prev",
       },
+      paginationClickable: true,
+      loop: true
     });
   </script>
 
@@ -239,7 +193,7 @@
     var firebaseEmailAuth; //파이어베이스 email 인증 모듈 전역변수
     var firebaseDatabase; //파이어베이스 db 모듈 전역변수
 
-    //var currentTime; // 현재 시간 가져오는 함수, time.js 파일에 따로 빼놓았다.
+    var currentTime; // 현재 시간 가져오는 함수, time.js 파일에 따로 빼놓았다.
 
     var name; //유저 이름
     var loginUserKey; //로그인한 유저의 부모 key
@@ -269,9 +223,18 @@
 
 
 
-    $(document).ready(function () {
 
-      //메인화면 감사일기 쓰기버튼 눌렀을 때
+    //반응 대기
+    $(document).ready(function () {
+      //스와이퍼 클릭시 작동
+      $(document).on('click', '.swiper-slide', function () {
+        var imglink = document.getElementsByClassName("swiper-slide")
+        console.log(imglink.src)
+        console.log(imglink)
+
+      });
+
+      //메인화면 쓰기버튼 눌렀을 때
       $(document).on('click', '.write', function () {
 
         //네비게이션 메뉴의 text값 가져오기 - 자바스크립트 dom 방식으로 가져왔다.
@@ -318,10 +281,10 @@
 
     //감사글 목록가져와서 뿌려주기
     function thanksList() {
-      alert("thanksList")
+      // alert("thanksList")
       //로그인한 유저라면
       if (loginUserKey) {
-        alert(loginUserKey)
+        // alert(loginUserKey)
         //글이 저장된 레퍼런스 값 가져오기
         var thanksRef = firebaseDatabase.ref('thanks');
         //on 함수로 글 목록가져오기
