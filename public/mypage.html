@@ -81,11 +81,6 @@
                 <label for="eventContents"> 행사 내용:</label>
                 <textarea class="form-control" rows="5" id="eventContents" placeholder="행사의 내용을 입력해주세요:)"></textarea>
                 <br>
-                <label for="eventGroup"> 행사 그룹:</label>
-                <textarea class="form-control" rows="3" id="eventGroup" placeholder="10시 타임,11시 타임,12시 타임
-1회차,2회차
-A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
-                <br>
                 <label for="eventPeople"> 수용 인원:(숫자만 입력해주세요)</label>
                 <textarea class="form-control" rows="1" id="eventPeople" onkeyup="SetNum(this);"
                     placeholder="행사 한 타임에 참가 가능한 인원을 입력해주세요:)"></textarea>
@@ -172,7 +167,6 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                 $("#show").html("접기");
                 $('#eventTitle').val("");
                 $('#eventContents').val("");
-                $('#eventGroup').val("");
                 $('#eventPeople').val("");
                 $("#fileButton").val("");
                 $("#write").html("저장하기")
@@ -197,15 +191,12 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                 var check = document.getElementById("write").textContent;
                 var eventTitle = $('#eventTitle').val();
                 var eventContents = $('#eventContents').val();
-                var eventGroup = $('#eventGroup').val();
                 var eventPeople = $('#eventPeople').val();
                 var eventImg = $('#fileButton').val();
                 if (isEmpty(eventTitle) == true)
                     alert("타이틀이 비어있습니다.")
                 else if (isEmpty(eventContents) == true)
                     alert("내용이 비어있습니다.")
-                else if (isEmpty(eventGroup) == true)
-                    alert("그룹이 비어있습니다.")
                 else if (isEmpty(eventPeople) == true)
                     alert("인원이 비어있습니다.")
                 else if (isEmpty(eventImg) == true)
@@ -225,6 +216,7 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                 console.log("로그인성공")
                 setTimeout(function () {
                     myEventList();
+                    myBookedList()
                 }, 1000);
             }
             else {
@@ -243,7 +235,6 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                 //input text area 객체 삭제해주기
                 $('#eventTitle').val("");
                 $('#eventContents').val("");
-                $('#eventGroup').val("");
                 $('#eventPeople').val("");
                 $("#fileButton").val("");
 
@@ -276,7 +267,6 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                 //최종완료되었을때 이곳에서 끝난다
                 var eventTitle = $('#eventTitle').val();
                 var eventContents = $('#eventContents').val();
-                var eventGroup = $('#eventGroup').val();
                 var eventPeople = $('#eventPeople').val();
                 task.then(function (snapshot) {
                     url = snapshot.downloadURL;
@@ -289,11 +279,10 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                         name: email,
                         eventTitle: eventTitle,
                         eventContents: eventContents,
-                        eventGroup: eventGroup,
                         eventPeople: eventPeople,
                         url: url,
                         createTime: currentTime,
-                        bookedPeople: 0
+                        bookedPeople: Number(0)
                     };
                     pushedEventRef = eventRef.set(obj);
 
@@ -332,8 +321,8 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
             if (loginUserKey == data.val().userkey) {
                 var eventTitle = data.val().eventTitle;
                 var createTime = data.val().createTime;
-                var eventGroup = data.val().eventGroup.split(",");
                 var eventPeople = data.val().eventPeople;
+                var bookedPeople = data.val().bookedPeople;
                 var key = data.key;
                 var Data = data.val();
                 var mod_btn_key = key + "mod_btn"
@@ -343,7 +332,7 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                     "<div class=\"media-body\">" +
                     "<h4 class=\"media-heading\">" + eventTitle +
                     " <span STYLE=\"color: green; font-size: 5pt\">" + createTime + "</span></h4>" +
-                    "<div id='" + key + "'><p>" + eventGroup + " * " + eventPeople + "명" + "</p></div></div>" +
+                    "<div id='" + key + "'><p>" + bookedPeople + " / " + eventPeople + "명" + "</p></div></div>" +
                     "<div align=\"right\" id='" + mod_btn_key + "'>" +
                     "<button type=\"button\" class=\"btn btn-warning modify\" id='" + mod_btn_key + "' onclick=\"btn_modify('" + key + "')\">관리</button>" +
                     " " +
@@ -357,6 +346,49 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
 
 
         }
+
+
+        //신청한 이벤트 목록 가져오기
+        function myBookedList() {
+            var userRef = firebaseDatabase.ref("users/" + loginUserKey + "/bookedList")
+            //조회                
+            var eventTitle;
+            var createTime;
+            var eventPeople;
+            var bookedPeople;
+            var key;
+            var Data;
+            userRef.on("child_added", function (data) {
+                var eventRef = firebaseDatabase.ref('eventList');
+                eventRef.on("child_added", function (snapshot) {
+                    if (data.val().eventKey == snapshot.val().createTime) {
+                        eventTitle = snapshot.val().eventTitle;
+                        createTime = snapshot.val().createTime;
+                        eventPeople = snapshot.val().eventPeople;
+                        ranking = data.val().ranking;
+                        key = snapshot.key;
+                        Data = snapshot.val();
+                        var mod_btn_key = key + "mod_btn"
+                        var html =
+                            "<div class=\"media\">" +
+                            "<div class=\"media-body\">" +
+                            "<h4 class=\"media-heading\">" + eventTitle +
+                            " <span STYLE=\"color: green; font-size: 5pt\">" + createTime + "</span></h4>" +
+                            "<div id='" + key + "'><p>" + ranking + "번째 신청자입니다." + "</p></div></div>" +
+                            "<div align=\"right\" id='" + mod_btn_key + "'>" +
+                            "<button type=\"button\" class=\"btn btn-danger\" onclick=\"btn_bookdelete('" + key + "')\">신청 취소</button>" +
+                            "</div></div>" +
+                            "<hr>";
+                        $(".bookingList").append(html);
+                    }
+                })
+
+
+            })
+        }
+
+
+
         //관리버튼 누르면 페이지 띄워주고 위에 접기로 수정
         function btn_modify(key) {
             var eventRef = firebaseDatabase.ref('eventList/')
@@ -374,12 +406,10 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
             if (data.key == forEventKey) {
                 var eventTitle = data.val().eventTitle;
                 var createTime = data.val().createTime;
-                var eventGroup = data.val().eventGroup;
                 var eventPeople = data.val().eventPeople;
                 var eventContents = data.val().eventContents;
                 $('#eventTitle').val(eventTitle);
                 $('#eventContents').val(eventContents);
-                $('#eventGroup').val(eventGroup);
                 $('#eventPeople').val(eventPeople);
                 $("#write").html("수정하기")
             }
@@ -411,7 +441,6 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                 //최종완료되었을때 이곳에서 끝난다
                 var eventTitle = $('#eventTitle').val();
                 var eventContents = $('#eventContents').val();
-                var eventGroup = $('#eventGroup').val();
                 var eventPeople = $('#eventPeople').val();
                 task.then(function (snapshot) {
                     url = snapshot.downloadURL;
@@ -421,7 +450,6 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                         name: email,
                         eventTitle: eventTitle,
                         eventContents: eventContents,
-                        eventGroup: eventGroup,
                         eventPeople: eventPeople,
                         url: url,
                         createTime: currentTime
@@ -437,7 +465,6 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
 
                     $('#eventTitle').val("");
                     $('#eventContents').val("");
-                    $('#eventGroup').val("");
                     $('#eventPeople').val("");
                     $("#fileButton").val("");
                     alert("행사 수정이 완료되었습니다.");
@@ -457,14 +484,12 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
 
 
 
-        //삭제하기 버튼
+        //내 행사 삭제하기 버튼
         function btn_delete(key) {
             var check = confirm(key + "삭제하시겠습니까?")
             if (check) {
                 var removeEvent = firebaseDatabase.ref("eventList/" + key);
                 var removeUsersEvent = firebaseDatabase.ref("users/" + loginUserKey + "/eventList/" + key)
-                console.log("removeEvent: " + removeEvent)
-                console.log("removeUsersEvent: " + removeUsersEvent)
                 removeEvent.remove()
                 removeUsersEvent.remove()
                 alert("삭제 완료")
@@ -472,6 +497,37 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
             window.location.reload();
         }
 
+        //신청한 행사 삭제 버튼
+        function btn_bookdelete(key) {
+            var check = confirm(key + "취소하시겠습니까?")
+            if (check) {
+                var removeEvent = firebaseDatabase.ref("eventList/" + key);
+                var removeUsersEvent = firebaseDatabase.ref("users/" + loginUserKey + "/bookedList/")
+                var bookedPeople;
+                removeEvent.on("value", function (data) {
+                    bookedPeople = Number(data.val().bookedPeople)
+                })
+                var updatePeople = bookedPeople - 1;
+
+                var obj = {
+                    bookedPeople: updatePeople
+                }
+                removeEvent.update(obj)
+                var removeUser
+                removeUsersEvent.once("child_added", function (data) {
+                    console.log(data.val())
+                    var eventKey = data.val().eventKey
+                    var ranking = data.val().ranking
+                    var parentKey = eventKey + "_" + ranking
+                    if (eventKey == key) {
+                        removeUsersEvent.child(parentKey).remove()
+                        console.log("돼라시발")
+                    }
+                })
+                alert("취소 완료")
+            }
+            window.location.reload();
+        }
     </script>
 
 

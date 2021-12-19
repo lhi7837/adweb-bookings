@@ -75,6 +75,10 @@
       object-fit: cover;
       margin: 0px auto;
     }
+
+    .eventDetail {
+      display: none;
+    }
   </style>
 
 
@@ -158,7 +162,7 @@
   <!-- <div class="swiper-pagination"></div> -->
   </div>
 
-  <div class="newEvent" id="newEvent">
+  <div class="eventDetail" id="eventDetail">
     <br>
     <div class="form-group">
       <label for="eventTitle"> 행사 제목:</label>
@@ -167,9 +171,7 @@
       <label for="eventContents"> 행사 내용:</label>
       <label class="form-control" id="eventContents"></label>
       <br>
-      <label for="eventGroup"> 행사 그룹:</label>
-      <label class="form-control" id="eventGroup"></label>
-      <br>
+      <label id="eventPeople"></label>
       <div align="center">
         <button type="button" id="book" name="book">신청하기</button>
       </div>
@@ -249,8 +251,7 @@
 
     //행사 목록가져와서 뿌려주기
     function eventList() {
-      $(".swiper-slide").remove(); // 뭐써야할지 모르겠음 밑에 append도 + event내용 있을때만 삭제해주게끔
-
+      $(".swiper-slide").remove();
       //글이 저장된 레퍼런스 값 가져오기
       var eventRef = firebaseDatabase.ref('eventList');
       //on 함수로 글 목록가져오기        
@@ -258,13 +259,77 @@
       return;
 
     }
+    //사진 클릭하면 아래 상세정보 표시
+    var imgsrc;
+    $(document).on('click', '.swiper-slide', function (data) {
+      var con = document.getElementById("eventDetail");
+      con.style.display = 'block';
+      imgsrc = data.target.id
+      var eventRef = firebaseDatabase.ref('eventList');
+      eventRef.on('child_added', function (snapshot) {
+        snapshot.forEach(function () {
+          if (snapshot.val().createTime == imgsrc) {
+            var eventTitle = snapshot.val().eventTitle;
+            var eventPeople = snapshot.val().eventPeople;
+            var eventContents = snapshot.val().eventContents;
+            var bookedPeople = snapshot.val().bookedPeople;
+            $('#eventTitle').html(eventTitle);
+            $('#eventContents').html(eventContents);
+            $('#eventPeople').html("잔여인원: " + (Number(eventPeople) - Number(bookedPeople)) + "명");
+          }
+
+        })
+
+      })
+    });
+    //신청버튼 누르면 bookedPeople +1
+    $(document).on('click', '#book', function (data) {
+      var eventRef = firebaseDatabase.ref("eventList/" + imgsrc)
+      var bookedPeople;
+      var eventPeople;
+      var eventTitle = $('#eventTitle').text();
+      var up;
+
+      eventRef.on('value', function (snapshot) {
+        eventPeople = snapshot.val().eventPeople;
+        bookedPeople = snapshot.val().bookedPeople;
+        var now = Number(snapshot.val().bookedPeople);
+        up = now + 1
+      })
+      var userRef = firebaseDatabase.ref("users/" + loginUserKey + "/bookedList/" + imgsrc + "_" + bookedPeople); //저장될 곳을 users라는 부모 키를 레퍼런스로 지정.
+
+      if (bookedPeople == eventPeople)
+        alert("잔여 인원이 없어 신청이 불가능합니다.")
+      else {
+        const email = firebaseEmailAuth.currentUser.email;
+        var result = confirm("신청하시겠습니까?")
+
+        if (confirm) {
+
+
+          var obj = {
+            ranking: bookedPeople,
+            eventKey: imgsrc
+          };
+          userRef.set(obj);
+
+          var eventobj = {
+            bookedPeople: up
+          }
+          eventRef.update(eventobj);
+          alert(eventTitle + "의 신청이 완료되었습니다.")
+          window.location.reload();
+
+        }
+      }
+    })
+
     //이벤트리스트 동적으로 붙이기
     var eventData = new Array();
     function on_event_list(data) {
       if (data.key) {
         eventData = data;
         console.log("행사있음 : " + data.val().url)
-        console.log(eventData)
         var childImg = new Array();
         var key = data.key;
         var Data = data.val();
@@ -274,13 +339,9 @@
           "<img class=\"img\" id=" + key + " src ='" + childImg + "'' > " +
           "</div>";
         $(".swiper-wrapper").append(html);
-      }
+      } else
+        console.log("행사없음")
     }
-
-    $(document).on('click', '.swiper-slide', function (data) {
-      console.log(data.target.src)
-
-    });
 
 
 
