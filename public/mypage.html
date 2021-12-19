@@ -95,7 +95,7 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                 </div>
                 <br>
                 <div align="center">
-                    <button type="button" id="write" name="write">행사 저장</button>
+                    <button type="button" id="write" name="write">저장하기</button>
                 </div>
             </div>
         </div>
@@ -125,7 +125,7 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
         var firebaseDatabase; //파이어베이스 db 모듈 전역변수
 
         var currentTime; // 현재 시간 가져오는 함수, time.js 파일에 따로 빼놓았다.
-
+        var forEventKey;
         var email; //유저 이름
         var loginUserKey; //로그인한 유저의 부모 key
         var userInfo; //로그인한 유저의 정보 object type
@@ -165,33 +165,62 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
             var con = document.getElementById("newEvent");
             if (con.style.display == 'block') {
                 con.style.display = 'none';
+                $("#show").html("새로운 행사 등록하기");
+
             } else {
                 con.style.display = 'block';
+                $("#show").html("접기");
+                $('#eventTitle').val("");
+                $('#eventContents').val("");
+                $('#eventGroup').val("");
+                $('#eventPeople').val("");
+                $("#fileButton").val("");
+                $("#write").html("저장하기")
+
             }
         }
 
+        function isEmpty(str) {
+
+            if (typeof str == "undefined" || str == null || str == "")
+                return true;
+            else
+                return false;
+        }
 
 
         $(document).ready(function () {
-
-            //행사 등록 버튼 눌렀을 때
+            //행사저장 버튼 눌렀을 때
             $(document).on('click', '#write', function () {
 
                 //네비게이션 메뉴의 text값 가져오기 - 자바스크립트 dom 방식으로 가져왔다.
-                var seseionCheck = document.getElementById("loginmenu").textContent;
-
-                if (seseionCheck == "로그아웃") {
-                    //저장하기
+                var check = document.getElementById("write").textContent;
+                var eventTitle = $('#eventTitle').val();
+                var eventContents = $('#eventContents').val();
+                var eventGroup = $('#eventGroup').val();
+                var eventPeople = $('#eventPeople').val();
+                var eventImg = $('#fileButton').val();
+                if (isEmpty(eventTitle) == true)
+                    alert("타이틀이 비어있습니다.")
+                else if (isEmpty(eventContents) == true)
+                    alert("내용이 비어있습니다.")
+                else if (isEmpty(eventGroup) == true)
+                    alert("그룹이 비어있습니다.")
+                else if (isEmpty(eventPeople) == true)
+                    alert("인원이 비어있습니다.")
+                else if (isEmpty(eventImg) == true)
+                    alert("사진이 비어있습니다.")
+                else if (check == "저장하기") {
                     saveEventAction();
                 } else {
-                    alert("로그인이 필요한 서비스 입니다.")
+                    modifyEvent();
                 }
             });
         });
+
         $(document).ready(function () {
             //세션체크 함수먼저 호출!
             var check = userSessionCheck();
-
             if (check) {
                 console.log("로그인성공")
                 setTimeout(function () {
@@ -216,10 +245,8 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                 $('#eventContents').val("");
                 $('#eventGroup').val("");
                 $('#eventPeople').val("");
+                $("#fileButton").val("");
 
-                var fileButton = document.getElementById("fileButton");
-                fileButton.select();
-                document.selection.clear;
 
             }
         }
@@ -230,8 +257,8 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
 
             // var event = eventRef.push(); // 해당 객체의 key 값이 자동으로 생성된다.
             const email = firebaseEmailAuth.currentUser.email;
-            var eventRef = firebaseDatabase.ref("eventList/");
-            var userRef = firebaseDatabase.ref("users/" + loginUserKey + "/eventList"); //저장될 곳을 users라는 부모 키를 레퍼런스로 지정.
+            var eventRef = firebaseDatabase.ref("eventList/" + currentTime);
+            var userRef = firebaseDatabase.ref("users/" + loginUserKey + "/eventList/" + currentTime); //저장될 곳을 users라는 부모 키를 레퍼런스로 지정.
 
             //파일을 파이어 베이스 스토리지에 저장하는 로직
             var fileButton = document.getElementById("fileButton");
@@ -240,7 +267,7 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                 //fileButton.addEventListener('change', function (e) {
                 var file = fileButton.files[0];
                 //현재 유저 키 + 현재시간을 파일이름으로 지정
-                var storageRef = firebase.storage().ref(loginUserKey + currentTime);
+                var storageRef = firebase.storage().ref(currentTime);
                 var task = storageRef.put(file);
                 // #.핵심
                 //이곳에서 파이어베이스 스토리지에도 저장해주고, 데이터베이스에도 저장해줘야 함.
@@ -258,30 +285,30 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
 
                     //로그인한 유저의 pk값,이름,내용,시간 데이터
                     var obj = {
-                        userkey: loginUserKey || null,
-                        name: email || null,
-                        eventTitle: eventTitle || null,
-                        eventContents: eventContents || null,
-                        eventGroup: eventGroup || null,
-                        eventPeople: eventPeople || null,
-                        url: url || null,
-                        createTime: currentTime
+                        userkey: loginUserKey,
+                        name: email,
+                        eventTitle: eventTitle,
+                        eventContents: eventContents,
+                        eventGroup: eventGroup,
+                        eventPeople: eventPeople,
+                        url: url,
+                        createTime: currentTime,
+                        bookedPeople: 0
                     };
-                    pushedEventRef = eventRef.push(obj);
+                    pushedEventRef = eventRef.set(obj);
 
                     var userobj = {
                         eventTitle: eventTitle,
                         createTime: currentTime,
-                        eventUID: pushedEventRef.getKey()
                     }
 
-                    userRef.push(userobj);
+                    userRef.set(userobj);
 
                     alert("행사가 저장 완료되었습니다.");
 
                 })
                     .catch(function (error) {
-                        console.error(error);
+                        console.error("저장에러 : " + error);
                         return;
                     });
 
@@ -296,13 +323,12 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
             var eventRef = firebaseDatabase.ref('eventList');
             //조회
             eventRef.on('child_added', on_event_list)
+            eventRef.once('child_changed', on_event_list)
         }
 
         //이벤트리스트 event 테이블의 event 키 들을 연속적으로 가져온다.
         function on_event_list(data) {
             //글 개수만큼 반복된다.
-            var dataKey = data.key;
-            console.log(dataKey)
             if (loginUserKey == data.val().userkey) {
                 var eventTitle = data.val().eventTitle;
                 var createTime = data.val().createTime;
@@ -317,7 +343,7 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                     "<div class=\"media-body\">" +
                     "<h4 class=\"media-heading\">" + eventTitle +
                     " <span STYLE=\"color: green; font-size: 5pt\">" + createTime + "</span></h4>" +
-                    "<div id='" + key + "'><p>" + eventGroup[0] + " * " + eventPeople + "</p></div></div>" +
+                    "<div id='" + key + "'><p>" + eventGroup + " * " + eventPeople + "명" + "</p></div></div>" +
                     "<div align=\"right\" id='" + mod_btn_key + "'>" +
                     "<button type=\"button\" class=\"btn btn-warning modify\" id='" + mod_btn_key + "' onclick=\"btn_modify('" + key + "')\">관리</button>" +
                     " " +
@@ -331,64 +357,52 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
 
 
         }
-        //행사 수정버튼
-
+        //관리버튼 누르면 페이지 띄워주고 위에 접기로 수정
         function btn_modify(key) {
-            var eventRef = firebaseDatabase.ref('eventList/' + key);
-            //조회
-            eventRef.on('child_added', function (snapshot) {
-                if (key == eventRef.getKey()) {
-                    var Data = snapshot.val();
-                    modifyEventAction(snapshot);
-                }
-            })
-            show();
-        }
+            var eventRef = firebaseDatabase.ref('eventList/')
+            forEventKey = key;
+            console.log("foeEventKey : " + forEventKey)
+            eventRef.on('child_added', modifyEventAction)
 
+            var con = document.getElementById("newEvent");
+            con.style.display = 'block';
+            $("#show").html("접기");
+        }
+        //관리버튼 누르면 텍스트값 수정해주기
         function modifyEventAction(data) {
-            //저장하기 함수 호출
-            {
-                var Data = data.val();
-                var eventTitle = data.onValue(eventTitle);
+            // console.log(data.key == forEventKey)
+            if (data.key == forEventKey) {
+                var eventTitle = data.val().eventTitle;
                 var createTime = data.val().createTime;
                 var eventGroup = data.val().eventGroup;
                 var eventPeople = data.val().eventPeople;
+                var eventContents = data.val().eventContents;
                 $('#eventTitle').val(eventTitle);
                 $('#eventContents').val(eventContents);
                 $('#eventGroup').val(eventGroup);
                 $('#eventPeople').val(eventPeople);
+                $("#write").html("수정하기")
             }
-            // var saveChack = modifyEvent();
 
-            // if (saveChack) {
-
-            //     //input text area 객체 삭제해주기
-            //     $('#eventTitle').val("");
-            //     $('#eventContents').val("");
-            //     $('#eventGroup').val("");
-            //     $('#eventPeople').val("");
-
-            //     var fileButton = document.getElementById("fileButton");
-            //     fileButton.select();
-            //     document.selection.clear;
-
-            // }
         }
+
+        //수정하기 버튼 클릭했을때
         function modifyEvent() {
 
             // var event = eventRef.push(); // 해당 객체의 key 값이 자동으로 생성된다.
             const email = firebaseEmailAuth.currentUser.email;
-            var eventRef = firebaseDatabase.ref("eventList/");
-            var userRef = firebaseDatabase.ref("users/" + loginUserKey + "/eventList"); //저장될 곳을 users라는 부모 키를 레퍼런스로 지정.
-
+            var eventRef = firebaseDatabase.ref("eventList/" + forEventKey);
+            var userRef = firebaseDatabase.ref("users/" + loginUserKey + "/eventList/" + forEventKey); //저장될 곳을 users라는 부모 키를 레퍼런스로 지정.
+            var eventImg = $('#fileButton').val();
             //파일을 파이어 베이스 스토리지에 저장하는 로직
             var fileButton = document.getElementById("fileButton");
             //수정 버튼을 눌러서 fileButton 객체가 생기면~! 작동
-            if (fileButton) {
+
+            if (!isEmpty(fileButton.files[0])) {
                 //fileButton.addEventListener('change', function (e) {
                 var file = fileButton.files[0];
-                //현재 유저 키 + 현재시간을 파일이름으로 지정
-                var storageRef = firebase.storage().ref(loginUserKey + currentTime);
+                //현재시간을 파일이름으로 지정
+                var storageRef = firebase.storage().ref(currentTime);
                 var task = storageRef.put(file);
                 // #.핵심
                 //이곳에서 파이어베이스 스토리지에도 저장해주고, 데이터베이스에도 저장해줘야 함.
@@ -401,44 +415,62 @@ A,B,C 와 같이 컴마로 구분해서 작성해주세요:)"></textarea>
                 var eventPeople = $('#eventPeople').val();
                 task.then(function (snapshot) {
                     url = snapshot.downloadURL;
-                    //파이어베이스에 이미지를 저장한후 그 url을 바로 가져와서 img 태그에 적용해줌
-                    // document.querySelector('#myimage').src = url;
 
-                    //로그인한 유저의 pk값,이름,내용,시간 데이터
                     var obj = {
-                        userkey: loginUserKey || null,
-                        name: email || null,
-                        eventTitle: eventTitle || null,
-                        eventContents: eventContents || null,
-                        eventGroup: eventGroup || null,
-                        eventPeople: eventPeople || null,
-                        url: url || null,
+                        userkey: loginUserKey,
+                        name: email,
+                        eventTitle: eventTitle,
+                        eventContents: eventContents,
+                        eventGroup: eventGroup,
+                        eventPeople: eventPeople,
+                        url: url,
                         createTime: currentTime
                     };
-                    pushedEventRef = eventRef.push(obj);
+                    pushedEventRef = eventRef.update(obj);
 
                     var userobj = {
                         eventTitle: eventTitle,
                         createTime: currentTime,
-                        eventUID: pushedEventRef.getKey()
                     }
+                    userRef.update(userobj);
+                    // Create a reference to the file to delete
 
-                    userRef.push(userobj);
-
-                    alert("행사 등록이 완료되었습니다.");
+                    $('#eventTitle').val("");
+                    $('#eventContents').val("");
+                    $('#eventGroup').val("");
+                    $('#eventPeople').val("");
+                    $("#fileButton").val("");
+                    alert("행사 수정이 완료되었습니다.");
+                    window.location.reload();
 
                 })
                     .catch(function (error) {
-                        console.error(error);
+                        console.error("수정에러 : " + error);
                         return;
                     });
 
                 //});
 
             }
-            return true;
+
         }
 
+
+
+        //삭제하기 버튼
+        function btn_delete(key) {
+            var check = confirm(key + "삭제하시겠습니까?")
+            if (check) {
+                var removeEvent = firebaseDatabase.ref("eventList/" + key);
+                var removeUsersEvent = firebaseDatabase.ref("users/" + loginUserKey + "/eventList/" + key)
+                console.log("removeEvent: " + removeEvent)
+                console.log("removeUsersEvent: " + removeUsersEvent)
+                removeEvent.remove()
+                removeUsersEvent.remove()
+                alert("삭제 완료")
+            }
+            window.location.reload();
+        }
 
     </script>
 
